@@ -88,7 +88,44 @@ function GetDownload(path) {
 	
 }
 
+function PutCreate(path, data) {
+	
+	//explecting to create plain TEXT
+	var webHDFSUrl = path  + "?op=CREATE&user.name=hue&doas=admin&overwrite=true" ;
 
+	request = new $.web.WebRequest($.net.http.PUT, webHDFSUrl  );
+	request.headers.set("Content-Type", "text/plain");
+ 
+
+	// send the request and synchronously get the response
+	client.request(request, destNameNode);
+	response = client.getResponse();
+	
+	
+	var objBody;
+	var location;
+	for(var c in response.headers) {
+		if (response.headers[c].name == "location" ) {
+			objBody = response.headers[c].value;
+			location = response.headers[c].value.substring(response.headers[c].value.indexOf(":50075")+6)
+		}
+
+    }
+
+	request = new $.web.WebRequest($.net.http.PUT, location );
+	request.headers.set("Content-Type", "text/plain");
+	request.setBody(data);
+
+	client.request(request, destDataNode);
+	response = client.getResponse();
+	
+	splitRepsonse(response);
+		
+	return {"webHDFSUrl" : hBaseUrl, "status": response.status, "cookies": co, "headers": he, "body": body } ; //objBody
+
+	//return JSON.stringify(response);
+	
+}
 
 //Function to split response into components: cookies, header and body
 function splitRepsonse(response)	{
@@ -110,12 +147,4 @@ function splitRepsonse(response)	{
 	else
 	    body = response.body.asString();
 		
-		//body = JSON.stringify(response.body);
-		
-		/*  trial for download 
-	    body = response.body.asArrayBuffer();
-	    var body2 = bin2String(body);
-	    var hh = body2;
-	    //body = ab2str(body);
-        */
 }
